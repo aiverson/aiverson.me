@@ -1,0 +1,327 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Lua/C Interop</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+	<section>
+	  <h1>Lua/C Modules</h1>
+	  <h2>Calling C/C++ code from Lua</h2>
+	</section>
+	<section>
+	  <p>This presentation is intended to be compatible with</p>
+	  <ul>
+	    <li>Lua 5.1, Lua 5.2, Lua 5.3, Luajit 2.0, and Luajit 2.1</li>
+	    <li>C99, C++11</li>
+	  </ul>
+	</section>
+	<section>
+	  <h2>Resources</h2>
+	  <ul>
+	    <li><a href="matrixvector.c">matrixvector.c</a></li>
+	    <li><a href="matrixvector.h">matrixvector.h</a></li>
+	  </ul>
+	</section>
+	<section>
+	  <h2>Motivation</h2>
+	  <p>Why bother integrating C/C++ modules into lua?</p>
+	  <ul>
+	    <li class="fragment">Provide access to native features and OS services: sockets, threads</li>
+	    <li class="fragment">Integrate existing native libraries: luacrypto, luv</li>
+	    <li class="fragment">Accelerate processing with optimized native code: torch, scilua</li>
+	  </ul>
+	</section>
+	<section>
+	  <h2>The Lua State</h2>
+	  <p>All of the data owned by a Lua execution context is in a lua_State object.</p>
+	  <p>The lua_State exposes a view of the stack restricted to the currently executing function</p>
+	</section>
+	<section>
+	  <section>
+	    <h2>Where is the Data?</h2>
+	    <p>All accessible Lua data must be referenced through at least one of the following:</p>
+	    <ul>
+	      <li>The Stack</li>
+	      <li>The Registry</li>
+	      <li>Upvalues</li>
+	    </ul>
+	  </section>
+	  <section>
+	    <h2>The Stack</h2>
+	    <p>Local variables and temporary intermediate values go on the stack</p>
+	    <p>Lua makes no distinction between stack cells and registers. Inside the Lua VM, the terms can be used interchangeably.</p>
+	    <p>The stack can be indexed with positive or negative numbers.</p>
+	  </section>
+	  <section>
+	    <h2>The Registry</h2>
+	    <p>The Registry is where native code is supposed to store persistent Lua data.</p>
+	    <p>It operates as a standard Lua table stored at a special index.</p>
+	  </section>
+	  <section>
+	    <h2>Upvalues</h2>
+	    <p>An upvalue represents a local variable bound in an enclosing scope.</p>
+	    <p>Upvalues can be shared by multiple closures.</p>
+	  </section>
+	</section>
+	<section>
+	  <section>
+	    <h2>What is the Data?</h2>
+	    <ul>
+	      <li>nil</li>
+	      <li>Boolean</li>
+	      <li>number</li>
+	      <li>string</li>
+	      <li>function</li>
+	      <li>userdata</li>
+	      <li>thread</li>
+	      <li>table</li>
+	    </ul>
+	  </section>
+	  <section>
+	    <h2>Userdata</h2>
+	    <p>A userdata object represents any kind of native data.</p>
+	    <p>light userdata are bare pointers. (void *)</p>
+	    <p>full userdata are regions of native memory managed by the Lua state.</p>
+	  </section>
+	  <section>
+	    <h2>Table</h2>
+	    <p>A table is a combination of an array and a hashtable</p>
+	    <p>Any lua value except nil can be a key and value in a table</p>
+	    <p>small integer indices have the performance of an array lookup</p>
+	  </section>
+	</section>
+	<section>
+	  <section>
+	    <h2>Let's Get Meta!</h2>
+	    <p>Because Lua is dynamically typed, the information for handling operator overloads needs to be collected in metadata accessible at runtime.</p>
+	    <p>This information is collected into a metatable.</p>
+	  </section>
+	  <section>
+	    <h2>Metatables</h2>
+	    <p>A metatable is just an ordinary table with some special keys in it: "__add"</p>
+	    <p>A metatable can be bound with the function setmetatable(val, mt)</p>
+	  </section>
+	</section>
+	<section>
+	  <h2>Let's make a Vector</h2>
+	  <pre><code class="cpp" data-trim data-noescape>
+#include &lt;lua.h&gt;
+#include &lt;luaconf.h&gt;
+#include &lt;lauxlib.h&gt;
+
+typedef struct vect {
+  lua_Unsigned size;
+  lua_Number data[];
+} vect;
+
+size_t mv_vect_mem(vect*);
+vect* mv_vect_add(vect*, vect*);
+	  </code></pre>
+	</section>
+	<section>
+	  <section>
+	    <h2>Native Implementation</h2>
+	    <p>mv_vect_mem reports the memory used by an existing vector.</p>
+	    <pre><code class="cpp" data-trim>
+size_t mv_vect_mem(vect* arg) {
+  return sizeof(vect) + arg->size * sizeof(lua_Number);
+}
+	    </code> </pre>
+	  </section>
+	  <section>
+	    <h2>Native Implementation</h2>
+	    <p>mv_vect_add adds two existing vectors and returns a new one.</p>
+	    <pre><code class="cpp" data-trim>
+vect* mv_vect_add(vect* a, vect* b) {
+  if (a == NULL || b == NULL) {
+    return NULL;
+  }
+  if (a->size != b-> size) {
+    return NULL;
+  }
+vect* result = (vect*)malloc(sizeof(vect)
+    + a->size * sizeof(lua_Number));
+  result->size = a->size;
+  for (lua_Unsigned i = 0; i < a->size; ++i) {
+    result->data[i] = a->data[i]*b->data[i];
+  }
+  return result;
+}
+	    </code> </pre>
+	  </section>
+	</section>
+	<section>
+	  <section>
+	    <h2>Lua Interface</h2>
+	    <p>To access the vectors from lua, we will need:</p>
+	    <ul>
+	      <li>A way to create a vector</li>
+	      <li>A way to retrieve the components of a vector</li>
+	      <li>A way to invoke the addition operation</li>
+	      <li>A way to print a vector</li>
+	    </ul>
+	  </section>
+	  <section>
+	    <h2>Lua Interface</h2>
+	    <p>To create a vector, we can just use a normal function.</p>
+	    <p>For the rest, we want to use metamethods</p>
+	    <ul>
+	      <li>__index</li>
+	      <li>__add</li>
+	      <li>__tostring</li>
+	    </ul>
+	  </section>
+	  <section>
+	    <h2>Creating a vector from lua</h2>
+	    <pre><code class="cpp" data-trim>
+int lua_mv_vect_create(lua_State *L) {
+  int n = lua_gettop(L);
+  vect* v = (vect*)lua_newuserdata(L, sizeof(vect)
+    + n*sizeof(lua_Number));
+  v->size = n;
+  for (int i = 0; i < n; ++i) {
+    if (lua_type(L, i+1) != LUA_TNUMBER) {
+      lua_pushliteral(L, "attempted to construct a vector with something that isn't a number");
+      lua_error(L);
+    }
+    v->data[i] = lua_tonumber(L, i+1);
+  }
+  luaL_getmetatable(L, "vect");
+  lua_setmetatable(L, -2);
+  return 1;
+}
+	    </code></pre>
+	  </section>
+	  <section>
+	    <h2>Adding vectors from Lua</h2>
+	    <pre><code class="cpp" data-trim>
+int lua_mv_vect_add(lua_State *L) {
+  checkVVArg(L);
+  vect* arg0 = (vect*)lua_touserdata(L, 1);
+  vect* arg1 = (vect*)lua_touserdata(L, 2);
+  vect* res = mv_vect_add(arg0, arg1);
+  if (res == NULL) {
+    luaL_error(L, "unable to add the provided vectors");
+  }
+  size_t mem = mv_vect_mem(res);
+  void* dest = lua_newuserdata(L, mem);
+  memcpy(dest, res, mem);
+  free(res);
+  luaL_getmetatable(L, "vect");
+  lua_setmetatable(L, -2);
+  return 1;
+}
+	    </code></pre>
+	  </section>
+	  <section>
+	    <h2>Indexing a vector from Lua</h2>
+	    <pre><code class="cpp" data-trim>
+int lua_mv_vect_index(lua_State *L) {
+  checkVIArg(L);
+  vect* v = (vect*)lua_touserdata(L, 1);
+  lua_Unsigned index = lua_tointeger(L, 2);
+  if (index > v->size) {
+    lua_pushliteral(L, "invalid index into vector");
+    lua_error(L);
+  }
+  lua_pushnumber(L, v->data[index-1]);
+  return 1;
+}
+	    </code></pre>
+	  </section>
+	  <section>
+	    <h2>Converting a vector to a string</h2>
+	    <pre><code class="cpp" data-trim>
+int lua_mv_vect_tostring(lua_State *L) {
+  checkVArg(L);
+  vect* v = (vect*)lua_touserdata(L, 1);
+  luaL_Buffer b;
+  luaL_buffinit(L, &b);
+  luaL_addstring(&b, "vector(");
+  if (v->size > 1) {
+    for (unsigned int i = 0; i < v->size-1; ++i) {
+      char* dest = luaL_prepbuffsize(&b, 16);
+      int len = sprintf(dest, "%f, ", v->data[i]);
+      luaL_addsize(&b, len);
+    }
+    char* dest = luaL_prepbuffsize(&b, 16);
+    int len = sprintf(dest, "%f", v->data[v->size-1]);
+    luaL_addsize(&b, len);
+  }
+  luaL_addchar(&b, ')');
+  luaL_pushresult(&b);
+  return 1;
+}
+	    </pre></code>
+	  </section>
+	</section>
+	<section>
+	  <h2>Opening the Module</h2>
+	  <pre><code class="cpp" data-trim>
+int luaopen_matrixvector(lua_State *L) {
+  luaL_newmetatable(L, "vect");
+  lua_pushcfunction(L, lua_mv_vect_add);
+  lua_setfield(L, -2, "__add");
+  lua_pushcfunction(L, lua_mv_vect_index);
+  lua_setfield(L, -2, "__index");
+  lua_pushcfunction(L, lua_mv_vect_tostring);
+  lua_setfield(L, -2, "__tostring");
+  lua_pop(L, -1);
+  lua_pushcfunction(L, lua_mv_vect_create);
+  return 1;
+}
+	  </code></pre>
+	</section>
+	<section>
+	  <h2>Usage from Lua</h2>
+	  <pre><code class="lua" data-trim>
+vector = require "matrixvector"
+a = vector(1, 2, 3)
+b = vector(7, 6, 5)
+c = a + b
+print(c[2])
+print(c)
+	  </code></pre>
+	</section>
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+
+    <script>
+      // More info https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+      history: true,
+
+      // More info https://github.com/hakimel/reveal.js#dependencies
+      dependencies: [
+      { src: 'plugin/markdown/marked.js' },
+      { src: 'plugin/markdown/markdown.js' },
+      { src: 'plugin/notes/notes.js', async: true },
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+      ]
+      });
+    </script>
+  </body>
+</html>

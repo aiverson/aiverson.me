@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="dcterms.date" content="2018-11-11">
+  <title>Multistage Programming</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="https://aiverson.me/presentations/css/reveal.css">
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://aiverson.me/presentations/css/theme/black.css" id="theme">
+  <link rel="stylesheet" href="slides.css"/>
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? 'httsp://lab.hakim.se/reveal-js/css/print/pdf.css' : 'https://aiverson.me/presentations/css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+  <!--[if lt IE 9]>
+  <script src="http://lab.hakim.se/reveal-js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide">
+  <h1 class="title">Multistage Programming</h1>
+  <p class="date">January 12, 2019</p>
+</section>
+
+<section id="mulitstage-programming" class="slide level1">
+<h1>Mulitstage Programming</h1>
+<h2 id="using-code-to-make-code">Using code to make code</h2>
+</section>
+<section id="section" class="slide level1">
+<h1></h1>
+<h2 id="types-of-multistage-programming">Types of Multistage Programming</h2>
+<ul>
+<li>Compile time</li>
+<li>Run time</li>
+<li>Mixed time</li>
+<li>“Our categorizations weren’t as good as we thought” time</li>
+</ul>
+</section>
+<section id="section-1" class="slide level1">
+<h1></h1>
+<h2 id="purposes">Purposes</h2>
+<ul>
+<li>Optimization</li>
+<li>Timesaving</li>
+<li>Resource inclusion</li>
+<li>Precomputation</li>
+<li>DSLs</li>
+</ul>
+</section>
+<section id="section-2" class="slide level1">
+<h1></h1>
+<h2 id="language-support">Language support</h2>
+<h3 id="good-bad-and-ugly">Good, Bad, and Ugly</h3>
+<ul>
+<li>OCaml, Common Lisp, Scheme, Terra, Zig</li>
+<li>Groovy, Kotlin, Haskell, FORTH, C#</li>
+<li>C++, C, Java, Python</li>
+</ul>
+</section>
+<section id="section-3" class="slide level1">
+<h1></h1>
+<h2 id="c-macros-and-metaprogramming">C Macros and Metaprogramming</h2>
+<ul>
+<li>textual substitution “macros” (not proper macros)</li>
+<li>Separate preprocessor
+<ul>
+<li>CCide</li>
+<li>Dynasm</li>
+</ul></li>
+</ul>
+</section>
+<section id="section-4" class="slide level1">
+<h1></h1>
+<h2 id="are-c-macros-turing-complete">Are C macros Turing complete?</h2>
+</section>
+<section id="section-5" class="slide level1">
+<h1></h1>
+<h2 id="are-c-macros-turing-complete-1">Are C macros Turing complete?</h2>
+<ul>
+<li>No, but they can do a lot.</li>
+<li><p>It’s just a bad idea to make them do that</p>
+<pre><code>  63 nested parentheses
+  63 characters in a name
+  4095 simultaneous macro identifiers
+  4095 characters in a source line</code></pre></li>
+</ul>
+</section>
+<section id="codethulu-will-eat-you" class="slide level1">
+<h1>CODETHULU WILL EAT YOU</h1>
+<p>As the characters shift on the screen you can feel your sanity slipping away but you can’t look away. The parentheses wriggle and slither through the pixels. They have you now. The unpronouncable names and random capitalization stick into your mind at harsh angles. The text shifts and winks at you. CODETHULU F(T_AGN) &amp;&amp; RL##YEH F(T_AGN)</p>
+</section>
+<section id="section-6" class="slide level1">
+<h1></h1>
+<h2 id="polymorphic-functions-in-c">Polymorphic functions in C</h2>
+<p>A macro that accepts the name of a type as a parameter and expands to a function.</p>
+<p>Additional macros to make it easier to write.</p>
+<p>Macro to get a reference to an expanded template</p>
+</section>
+<section id="section-7" class="slide level1">
+<h1></h1>
+<h2 id="c-templates">C++ templates</h2>
+<ul>
+<li>Turing complete</li>
+<li>Syntactical correctness is undecidable</li>
+<li>Cumbersome and slow</li>
+</ul>
+</section>
+<section id="section-8" class="slide level1">
+<h1></h1>
+<h2 id="hygiene">Hygiene</h2>
+<ul>
+<li>Name conflicts</li>
+<li>Namespaces</li>
+<li>Operator precedence</li>
+</ul>
+</section>
+<section id="section-9" class="slide level1">
+<h1></h1>
+<h2 id="doing-it-right">Doing it right</h2>
+<ul>
+<li>Well defined operations</li>
+<li>CODE IS DATA</li>
+<li>Convenient representations</li>
+<li>Paradigmatic properties</li>
+</ul>
+</section>
+<section id="section-10" class="slide level1">
+<h1></h1>
+<h2 id="language-choice-terra">Language Choice: <a href="http://terralang.org">Terra</a></h2>
+<ul>
+<li>C like low level semantics</li>
+<li>Dynamic high level semantics</li>
+<li>Simple and learnable syntax</li>
+<li>Fast and efficient</li>
+</ul>
+</section>
+<section id="section-11" class="slide level1">
+<h1></h1>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="http://terralang.org/publications.html">Terra Publications</a></li>
+<li><a href="http://optlang.org">Opt - a graphics system</a></li>
+<li><a href="http://ebblang.org">Ebb - a physics system</a></li>
+</ul>
+</section>
+<section id="section-12" class="slide level1">
+<h1></h1>
+<h2 id="fundamental-operations">Fundamental Operations</h2>
+<ul>
+<li>Quote (quasiquote)</li>
+<li>Splice</li>
+<li>Escape</li>
+<li>Emit</li>
+<li>Generate Symbol</li>
+</ul>
+</section>
+<section id="section-13" class="slide level1">
+<h1></h1>
+<h2 id="quote">Quote</h2>
+<p>An expression that evaluates to an AST of the quoted source code</p>
+<pre><code>quote
+    var x = foo(bar, baz)
+    var y = quux()
+in
+    x + y
+end
+
+`a * b + c</code></pre>
+</section>
+<section id="section-14" class="slide level1">
+<h1></h1>
+<h2 id="splice">Splice</h2>
+<p>Enclose an expression that evaluates to an AST and put it into the enclosing code</p>
+<pre><code>    a + [expensive(constant)] + c</code></pre>
+</section>
+<section id="section-15" class="slide level1">
+<h1></h1>
+<h2 id="escape-and-emit">Escape and Emit</h2>
+<p>Enclose a block of code which emits several ASTs for inclusion.</p>
+<pre><code>terra compiled(state : &amp;state)
+    escape
+        local cstate = compilestate()
+        for line in lines(fakeasm) do
+            emit(translateLine(line, state, cstate))
+        end
+    end
+end</code></pre>
+</section>
+<section id="section-16" class="slide level1">
+<h1></h1>
+<h2 id="generate-symbol">Generate Symbol</h2>
+<ul>
+<li>symbol(type, name) — create a local variable symbol</li>
+<li>global(type, init, name) — create a global variable symbol</li>
+<li>label(name) — create a label for branches</li>
+</ul>
+</section>
+<section id="section-17" class="slide level1">
+<h1></h1>
+<h2 id="type-manipulation">Type manipulation</h2>
+<ul>
+<li>Create, manipulate, and use types</li>
+<li>Template specialization</li>
+<li>Types with meta behaviors</li>
+</ul>
+</section>
+<section id="section-18" class="slide level1">
+<h1></h1>
+<h2 id="metaprogrammed-types">Metaprogrammed Types</h2>
+<ul>
+<li>Create new methods when needed</li>
+<li>Store extra metainformation on a type</li>
+<li>Transform a type to add members and methods</li>
+</ul>
+</section>
+<section id="section-19" class="slide level1">
+<h1></h1>
+<h2 id="macro">Macro</h2>
+<p>An implicit quote and escape that looks like normal syntax</p>
+<pre><code>-- in lua context
+amacro = macro(afunction)
+
+-- in terra context
+x = amacro(a + b, c)
+x = [afunction(`a + b, `c)]</code></pre>
+</section>
+<section id="section-20" class="slide level1">
+<h1></h1>
+<h2 id="example-data-file-inclusion">Example: Data File inclusion</h2>
+<pre><code>local f = io.open(&quot;filename&quot;)
+local contents = f:read(&quot;*a&quot;)
+local contentarr = global(&amp;int8, contents)</code></pre>
+</section>
+<section id="section-21" class="slide level1">
+<h1></h1>
+<h2 id="example-objective-c">Example: Objective C</h2>
+<pre><code>C = terralib.includec(&quot;objc/message.h&quot;)--include ObjC runtime
+struct ObjC { handle : &amp;C.objc_object }
+--define wrapper for ObjC types
+ObjC.metamethods.__methodmissing = macro(
+    function(sel,obj,...)
+        local arguments = {...}
+        local sel = C.sel_registerName(sanitizeSelector(sel,#argume
+nts))
+--generate expression to implement method call ’sel’
+    return `ObjC {
+        C.objc_msgSend([obj].handle,[sel],[arguments])
+    }
+end)</code></pre>
+</section>
+<section id="section-22" class="slide level1">
+<h1></h1>
+<h2 id="discussion-object-systems">Discussion: Object Systems</h2>
+<ul>
+<li>Creating vtables</li>
+<li>Dynamic binding</li>
+<li>Instance checks</li>
+</ul>
+</section>
+<section id="section-23" class="slide level1">
+<h1></h1>
+<h2 id="compiling-bf">Compiling BF</h2>
+<ul>
+<li>all characters except [ and ] are a single line of code which can be quoted and spliced</li>
+<li>maintain a stack of labels</li>
+<li>when seeing [ push labels onto the stack</li>
+<li>when seeing ] pop and compile a conditional branch</li>
+</ul>
+</section>
+<section id="section-24" class="slide level1">
+<h1></h1>
+<h2 id="effectiveness">Effectiveness</h2>
+<ul>
+<li>Multistage programming makes the language better</li>
+<li>Design applications to be writable in a Language</li>
+<li>Extend the language to express the application</li>
+</ul>
+</section>
+<section id="section-25" class="slide level1">
+<h1></h1>
+<h2 id="simplicity">Simplicity</h2>
+<ul>
+<li>Smaller core language</li>
+<li>Versatile operators</li>
+<li>Composability</li>
+</ul>
+</section>
+<section id="section-26" class="slide level1">
+<h1></h1>
+<h2 id="dry">DRY</h2>
+<ul>
+<li>More possible abstractions</li>
+<li>Improve abstraction performance</li>
+<li>Fewer places for errors to hide</li>
+</ul>
+</section>
+<section id="section-27" class="slide level1">
+<h1></h1>
+<h2 id="homework">Homework</h2>
+<ul>
+<li><a href="autotuner_start.t">autotuner</a></li>
+<li><a href="precompute_start.t">precompute</a></li>
+<li><a href="patterns_start.t">patterns</a></li>
+</ul>
+</section>
+<section id="questions" class="slide level1">
+<h1>Questions?</h1>
+</section>
+    </div>
+  </div>
+
+  <script src="https://aiverson.me/presentations/lib/js/head.min.js"></script>
+  <script src="https://aiverson.me/presentations/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Push each slide change to the browser history
+        history: true,
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'https://aiverson.me/presentations/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'https://aiverson.me/presentations/plugin/zoom-js/zoom.js', async: true },
+          { src: 'https://aiverson.me/presentations/plugin/notes/notes.js', async: true }
+        ]
+      });
+    </script>
+    </body>
+</html>

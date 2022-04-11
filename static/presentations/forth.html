@@ -1,0 +1,202 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>FORTH, source to hardware</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    </script>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section>
+                <h1>FORTH from source to hardware</h1>
+                <h2>It's like Lisp, but made of assembly instead of lists</h2>
+            </section>
+            <section>
+                <h2>Resources</h2>
+                <dl>
+                    <dt>This presentation</dt><dd><a href="http://aiverson.me/presentations/forth.html">http://aiverson.me/presentations/forth.htm</a></dd>
+                    <dt>Forth standard</dt><dd><a href="https://forth-standard.org/standard">https://forth-standard.org/standard</a></dd>
+                    <dt>Online Forth Interpreter</dt><dd><a href="https://repl.it/languages/forth">https://repl.it/lanugages/forth</a></dd>
+                    <dt>AVR embedded Forth</dt><dd><a href="http://amforth.sourceforge.net">http://amforth.sourceforge.net</a></dd>
+                </dl>
+            </section>
+            <section>
+                <h2>First Steps</h2>
+                <code><pre>1 2 + .
+.( Hello world?)
+: hello ." Hello world!" ;
+hello
+: sqr dup * ;
+3 sqr .</pre></code>
+            </section>
+            <section>
+                <h2>It looks kinda weird</h2>
+                <ul>
+                    <li>Reverse Polish Notation</li>
+                    <li>Stacks!</li>
+                    <li>Can compile on toasters</li>
+                    <li>Compile-time metaprogramming</li>
+                    <li>Syntax extensions</li>
+                </ul>
+            </section>
+            <section>
+                <section>
+                    <h2>Memory Model</h1>
+                    <ul>
+                        <li>D-Stack</li>
+                        <li>R-Stack</li>
+                        <li>C-Stack</li>
+                        <li>Dictionary</li>
+                        <li>System Space</li>
+                        <li>Heap?</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>Data Stack</h2>
+                    <ul>
+                        <li>All arguments, returns, and lots of intermediates stored here</li>
+                        <li>Not locally balanced usage</li>
+                        <li>Shared by all calls in a thread.</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>Return Stack/Compile Stack</h2>
+                    <ul>
+                        <li>return addresses, local variables, some state</li>
+                        <li>Locally balanced usage</li>
+                        <li>Each call has its own frame</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>Dictionary</h2>
+                    <ul>
+                        <li>Where the words and definitions live.</li>
+                        <li>Contiguous and persistent memory, (mostly) immutable after a single write.</li>
+                        <li>Shared among all threads</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>System Space</h2>
+                    <ul>
+                        <li>A fixed layout region of mutable memory storing the global state and configuration.
+                            <ul>
+                                <li>Recognizer stack</li>
+                                <li>System mode</li>
+                                <li>Wordlist stack</li>
+                                <li>Top level linebuffer</li>
+                                <li>Output buffer</li>
+                                <li>reference pointers</li>
+                            </ul>
+                        </li>
+                        <li>Shared between all threads</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>Heap</h2>
+                    <ul>
+                        <li>Modern implementations have a heap, but we won't be covering it here.</li>
+                        <li>Can be implemented in FORTH</li>
+                    </ul>
+                </section>
+            </section>
+            <section>
+                <section>
+                    <h2>Recognizers</h2>
+                    <img src="https://vignette.wikia.nocookie.net/tron/images/5/57/Reco.PNG/revision/latest?cb=20140427175433" />
+                    <br />
+                    <img src="https://vignette.wikia.nocookie.net/tron/images/4/42/Recognizer_Legacy.jpg/revision/latest?cb=20140215233439" />
+                </section>
+                <section>
+                    <h2>Recognizers</h2>
+                    <p>Recognizers try to parse from the source buffer. They push a method table and some data for the methods to use based on their result.</p>
+                    <p>The default order is</p>
+                    <ol>
+                        <li>rec:word &mdash; searches the dictionary for a word</li>
+                        <li>rec:intnum &mdash; parses the input as an integer</li>
+                    </ol>
+                </section>
+            </section>
+            <section>
+                <h2>Second steps</h2>
+                <code><pre>: sqrt-closer ( square guess -- square guess adjustment)
+  2dup / over - 2 / ;
+: sqrt ( square -- root )
+  1 begin sqrt-closer dup while + repeat drop nip ;</pre></code>
+            </section>
+            <section>
+                <section>
+                    <h2>Uh oh! Someone forgot IF</h2>
+                    <p>We need to implement IF, THEN, and ELSE.</p>
+                    <p>These are all immediate words, so they execute at compile time. They need to compile, mark, and resolve branches</p>
+                </section>
+                <section>
+                    <h2>Implementing IF</h2>
+                    <p>: IF (ASM-BEZ) , DP &gt;R ; IMMEDIATE</p>
+                    <p>IF is an immediate word that writes a conditional branch and pushes a resolution mark to the Rstack.</p>
+                </section>
+                <section>
+                    <h2>Implementing THEN</h2>
+                    <p>: THEN R&gt; DUP @ DP 1 CELLS + OR SWAP ! ; IMMEDIATE</p>
+                    <p>THEN is an immediate word that resolves the top branch marker on the rstack.</p>
+                </section>
+                <section>
+                        <h2>Implementing ELSE</h2>
+                        <p>: ELSE (ASM-B) , DP R&gt; DUP @ DP 1 CELLS + OR SWAP ! &gt;R ; IMMEDIATE</p>
+                        <p>ELSE is an immediate word that resolves the top branch marker on the rstack and replaces it with a marker to a newly written unconditional branch.</p>
+                </section>
+            </section>
+            <section>
+                <h2>Arrays and structs</h2>
+                <p>Forth allows pointer arithmetic, but what if you want something nicer?</p>
+                <code><pre>: ARRAY
+    CREATE DUP , * CELLS ALLOT
+    DOES> DUP @ SWAP * CELLS + ; </pre></code>
+            </section>
+        </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+
+    <script>
+        // More info https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+            history: true,
+
+            math: {
+                mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+                config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+            },
+
+            // More info https://github.com/hakimel/reveal.js#dependencies
+            dependencies: [
+                { src: 'plugin/markdown/marked.js' },
+                { src: 'plugin/markdown/markdown.js' },
+                { src: 'plugin/notes/notes.js', async: true },
+                { src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } },
+                { src: 'plugin/math/math.js', async: true }
+            ]
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,253 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Multiparadigm Programming</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+	<section>
+	  <h1>Multiparadigm Programming</h1>
+	  <h2>If all you have is a hammer, you should find another tool.</h2>
+	</section>
+	<section>
+	  <h2>What is a pardigm?</h2>
+	  <p>A way of doing things.</p>
+	  <p>A paradigm is a set of conceptual tools, mathematical foundations, and programming tool support.</p>
+	</section>
+	<section>
+	  <h2>What isn't a paradigm?</h2>
+	  <ul>
+	    <li>Magic</li>
+	    <li>A library</li>
+	    <li>A language</li>
+	  </ul>
+	</section>
+	<section>
+	  <h2>Why Multiparadigm?</h2>
+	  <ul>
+	    <li>Saphir-Whorf</li>
+	    <li>Cached Solutions</li>
+	    <li>Efficiency</li>
+	  </ul>
+	</section>
+	<section>
+	  <h2>Properties of paradigms</h2>
+	  <ul>
+	    <li>DRYness</li>
+	    <li>Locality</li>
+	    <li>Consistency</li>
+	    <li>Transferability</li>
+	  </ul>
+	</section>
+	<section>
+	  <h2>An if statement</h2>
+	  <code><pre>
+If (X-10) 22, 22, 24
+foo();
+bar();
+quux();
+</pre></code>
+	</section>
+	<section>
+	  <h2>Structured Programming Paradigm</h2>
+	  <p>Single Entry-Single Exit Blocks (also called basic blocks)</p>
+	  <p>locality of control flow makes code easier to read and write</p>
+	  <p>special keywords like "while" and "for"</p>
+	</section>
+	<section>
+	  <h2>Structured Sample</h2>
+	  <code><pre>
+if (x &lt;= 10) {
+   foo();
+   bar();
+}
+quux();
+		       
+	 </pre></code>
+	  </section>
+	<section>
+	  <h2>Why is structured programming an improvement?</h2>
+	  <p>The previous and next lines are nearby: Locality</p>
+	  <p>The previous and next lines are always the same: Consistency</p>
+	</section>
+	<section>
+	  <h2>Lessons and Heuristics</h2>
+	  <p>Making code easier to read and understand makes it easier to write.</p>
+	  <p>Put logically adjacent things physically adjacent.</p>
+	  <p>Disciplines, not tools.</p>
+	  <p>Status Quo Reversal</p>
+	</section>
+	<section>
+	  <h2>Exceptions</h2>
+	  <p>What shouldn't we use structured programming for?</p>
+	  <code class="fragment"><pre>
+void memcpy(void* dest, void* src, size_t n) {
+    switch (n & 7) {
+        case 0: for(; n > 0; n-=8) {
+            *(dest++) = *(src++);
+            case 7: *(dest++) = *(src++);
+            case 6: *(dest++) = *(src++);
+            case 5: *(dest++) = *(src++);
+            case 4: *(dest++) = *(src++);
+            case 3: *(dest++) = *(src++);
+            case 2: *(dest++) = *(src++);
+            case 1: *(dest++) = *(src++);
+        }
+    }
+}
+	  </pre></code>
+	</section>
+	<section>
+	  <h2>Let's invent another Paradigm!</h2>
+	  <p>What else can we enforce to make our lives easier as programmers?</p>
+	  <p class="fragment">Let's make data and the code to use it stay together at all times!</p>
+	</section>
+	<section>
+	  <h2>What would that even look like?</h2>
+	  <p class="fragment">Code and Data description in the same file.</p>
+	  <p class="fragment">Some of the bound functions (methods) are public.</p>
+	  <p class="fragment">The data and implementation details are hidden.</p>
+	</section>
+	<section>
+	  <h2>Can we do better?</h2>
+	  <p class="fragment">Let's allow interfaces to be specified with no implementation!</p>
+	  <p class="fragment">Then we can program code that keeps working even if we change what it uses</p>
+	</section>
+	<section>
+	  <h2>Inheritance?</h2>
+	  <h1 class="fragment">No.</h1>
+	  <p class="fragment">Hack that dates back to C (type punning)</p>
+	  <p class="fragment">Between Interfaces and Composition, there is no need.</p>
+	</section>
+	<section>
+	  <h2>Improvements</h2>
+	  <p>Implementation and declaration together.</p>
+	  <p>Less to remember while writing.</p>
+	  <p>SOLID principles: ease of maintenance and design</p>
+	</section>
+	<section>
+	  <h2>Let's solve another problem!</h2>
+	  <p class="fragment">Data nonlocality</p>
+	  <p class="fragment">Shared Mutable Data</p>
+	</section>
+	<section>
+	  <h2>Local, Consistent Functions (pure)</h2>
+	  <p>A function doesn't depend on data other than that passed in.</p>
+	  <p>A function doesn't alter the data passed to it.</p>
+	  <p>A function always returns the same thing given the same arguments.</p>
+	</section>
+	<section>
+	  <h2>Encapsulate mutable state</h2>
+	  <p>State may be mutated by the same code that created it</p>
+	  <p>When state gets shared across the system, keep it constant.</p>
+	</section>
+	<section>
+	  <h2>Monoids</h2>
+	  <p>A Monoid is a set of values with a binary operation and identity element such that:</p>
+	  <ul>
+	    <li> $x\in S \wedge y\in S \rightarrow op(x, y) \in S$</li>
+	    <li> $x\in S \rightarrow op(x, id) = x$</li>
+	    <li> $x\in S \rightarrow op(id, x) = x$</li>
+	    <li> $x, y, z \in S \rightarrow op(op(x, y), z) = op(x, op(y, z))$</li>
+	  </ul>
+	</section>
+	<section>
+	  <h2>Generate, Filter, Map, and Reduce</h2>
+	  <p>Filter and Map are constructors for elements of a monoid</p>
+	  <p>Generate -> Transform -> Reduce</p>
+	  <p>(nth 25 (scan + (map square (integers))))</p>
+	</section>
+	<section>
+	  <h2>Shared Structure and Laziness</h2>
+	  <p>Persistent Data Structures</p>
+	  <p>Linked lists</p>
+	  <p>Splay Trees</p>
+	</section>
+	<section>
+	  <h2>IO</h2>
+	  <p>It's annoying to have to write state machines to track IO processes</p>
+	  <p>How can we fix that?</p>
+	</section>
+	<section>
+	  <h2>Asynchronous Programming</h2>
+	  <p>Push Style APIs</p>
+	  <p>Callback functions/closures</p>
+	  <p>Continuations?</p>
+	</section>
+	<section>
+	  <h2>Callback Hell</h2>
+	  <p>FP to the rescue!</p>
+	  <p>Let's invent Monads.</p>
+	</section>
+	<section>
+	  <h2>Monads</h2>
+	  <p>&gt;&gt;=: Ma -> (a -> Ma) -> Ma</p>
+	  <p>\ a (f a) &gt;&gt;= \ a (g a)</p>
+	  <p>A Monad is defined by the operators it supports. (bind and return)</p>
+	  <p>Monads allow encapsulating operation chaining in an easy and flexible way.</p>
+	</section>
+	<section>
+	  <h2>Promises</h2>
+	  <p>Encapsulate the asynchronicity so that we can easily read, write, and compose it.</p>
+	  <p>State and side effects are closed into containers, so that we can compose them without worrying about causing undesired side effects.</p>
+	</section>
+	<section>
+	  <h2>Functional Reactive Programming</h2>
+	  <p>Event Stream is to Promise as Array is to Variable</p>
+	  <p>Sequences of future events and data manipulated as a single logical entity</p>
+	</section>
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+
+    <script>
+      // More info https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+      history: true,
+      
+      math: {
+      mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+      config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+      },
+
+      multiplex: {
+      secret: '15177597649511201678',
+      id: 'c8e79dd599cd1300',
+      url: 'http://aiverson.me:1948'
+      },
+      
+      // More info https://github.com/hakimel/reveal.js#dependencies
+      dependencies: [
+      { src: '//cdn.socket.io/socket.io-1.3.5.js', async: true },      
+      { src: 'plugin/markdown/marked.js' },
+      { src: 'plugin/markdown/markdown.js' },
+      { src: 'plugin/notes/notes.js', async: true },
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+      { src: 'plugin/math/math.js', async: true },
+      { src: 'plugin/multiplex/master.js', async: true }
+      ]
+      });
+    </script>
+  </body>
+</html>
